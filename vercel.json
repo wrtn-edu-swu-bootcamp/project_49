@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd sleep-payback && npm run build",
-  "devCommand": "cd sleep-payback && npm run dev",
-  "installCommand": "cd sleep-payback && npm install",
-  "outputDirectory": "sleep-payback/.next"
-}
