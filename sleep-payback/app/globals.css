@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  /* Basic Theme - 기본 (기존 Day) */
-  --bg-primary: #fafafa;
+  /* Basic Theme - 세련된 인디고/슬레이트 */
+  --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #737373;
-  --accent: #2563eb;
-  --accent-light: #eff6ff;
-  --border: #e5e5e5;
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent: #6366f1;
+  --accent-light: #eef2ff;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="day"] {
@@ -78,8 +78,9 @@ body {
   color: var(--text-primary);
   transition: all 0.3s ease;
   font-size: 15px;
-  line-height: 1.75;
-  letter-spacing: -0.01em;
+  line-height: 1.7;
+  letter-spacing: -0.02em;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -170,9 +171,9 @@ body {
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.2s ease;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
@@ -237,13 +238,13 @@ body {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
+  padding: 14px 28px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
 }
 
 [data-theme="star"] .btn-primary {
@@ -252,8 +253,8 @@ body {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
 }
 
 [data-theme="star"] .btn-primary:hover {
@@ -340,11 +341,11 @@ input[type="range"]::-moz-range-thumb:hover {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 .badge-success {

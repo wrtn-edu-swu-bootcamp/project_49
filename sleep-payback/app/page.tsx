@@ -553,7 +553,7 @@ export default function Home() {
           localStorage.setItem("bedtime-alarm", JSON.stringify(alarmData));
           
           if (newState) {
-            alert(`매일 ${bedtimeAlarmTime}에 취침 알림을 보내드릴게요! 🌙`);
+            alert(`매일 ${bedtimeAlarmTime}에 취침 알림을 보내드릴게요.`);
             scheduleDailyBedtimeAlarm();
           } else {
             alert("취침 알림이 해제되었습니다.");
@@ -857,8 +857,8 @@ export default function Home() {
       } else if (diff < -0.5) {
         insights.push({
           icon: "📉",
-          title: "개선 중!",
-          text: `최근 7일간 수면 부채가 평균 ${Math.abs(diff).toFixed(1)}시간 감소했어요. 계속 잘하고 계세요! 💪`,
+          title: "개선 중",
+          text: `최근 7일간 수면 부채가 평균 ${Math.abs(diff).toFixed(1)}시간 감소했습니다. 좋은 흐름이에요.`,
         });
       }
     }
@@ -883,8 +883,8 @@ export default function Home() {
     // 목표 근접
     if (goalProgress.current >= 5) {
       insights.push({
-        icon: "🎯",
-        title: "목표 근접!",
+        icon: "◎",
+        title: "목표 근접",
         text: `이번 주 ${goalProgress.current}일 달성! ${7 - goalProgress.current}일만 더 하면 주간 목표 완료예요!`,
       });
     }
@@ -2702,8 +2702,10 @@ export default function Home() {
 
             {!report && !loading && (
               <div className="card" style={{ padding: "60px 20px", textAlign: "center" }}>
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>💤</div>
-                <p style={{ color: "var(--text-secondary)" }}>정보를 입력하고 AI 분석을 받아보세요</p>
+                <div style={{ marginBottom: "16px", display: "flex", justifyContent: "center" }}>
+                  <Moon size={48} style={{ color: "var(--accent)", opacity: 0.6 }} />
+                </div>
+                <p style={{ color: "var(--text-secondary)", fontSize: "15px" }}>정보를 입력하고 AI 분석을 받아보세요</p>
               </div>
             )}
           </div>
