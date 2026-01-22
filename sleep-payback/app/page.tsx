@@ -2860,58 +2860,65 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 이모지 선택 (이미지가 없을 때만) */}
-              {!profileImage && (
-                <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "8px" }}>
-                    프로필 이모지
-                  </label>
-                  <div style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "repeat(10, 1fr)", 
-                    gap: "6px",
-                    padding: "10px",
-                    background: "var(--bg-secondary)",
-                    borderRadius: "10px",
-                    border: "1px solid var(--border)",
-                  }}>
-                    {profileEmojis.map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => setProfileEmoji(emoji)}
-                        style={{
-                          width: "100%",
-                          aspectRatio: "1",
-                          borderRadius: "6px",
-                          border: profileEmoji === emoji ? "2px solid var(--accent)" : "1px solid transparent",
-                          background: profileEmoji === emoji ? "var(--accent-light)" : "transparent",
-                          fontSize: "18px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "all 0.2s ease",
-                          padding: "0",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (profileEmoji !== emoji) {
-                            e.currentTarget.style.background = "var(--bg-primary)";
-                            e.currentTarget.style.transform = "scale(1.05)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (profileEmoji !== emoji) {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.transform = "scale(1)";
-                          }
-                        }}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
+              {/* 이모지 선택 (항상 보임) */}
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "8px" }}>
+                  프로필 이모지 {profileImage && <span style={{ fontWeight: "400", color: "var(--text-secondary)" }}>(이모지 선택 시 URL이 삭제됩니다)</span>}
+                </label>
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "repeat(10, 1fr)", 
+                  gap: "6px",
+                  padding: "10px",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border)",
+                }}>
+                  {profileEmojis.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        setProfileEmoji(emoji);
+                        setProfileImage(""); // URL 자동 삭제
+                      }}
+                      style={{
+                        width: "100%",
+                        aspectRatio: "1",
+                        borderRadius: "6px",
+                        border: (!profileImage && profileEmoji === emoji) ? "2px solid var(--accent)" : "1px solid transparent",
+                        background: (!profileImage && profileEmoji === emoji) ? "var(--accent-light)" : "transparent",
+                        fontSize: "18px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.2s ease",
+                        padding: "0",
+                        opacity: profileImage ? 0.6 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!profileImage || profileEmoji !== emoji) {
+                          e.currentTarget.style.background = "var(--bg-primary)";
+                          e.currentTarget.style.transform = "scale(1.1)";
+                          e.currentTarget.style.opacity = "1";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!profileImage && profileEmoji !== emoji) {
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.transform = "scale(1)";
+                        } else if (profileImage) {
+                          e.currentTarget.style.opacity = "0.6";
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.transform = "scale(1)";
+                        }
+                      }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* 버튼 */}
