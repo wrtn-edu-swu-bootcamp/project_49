@@ -2728,7 +2728,11 @@ export default function Home() {
             zIndex: 1000,
             padding: "20px",
           }}
-          onClick={() => setShowProfileEditModal(false)}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowProfileEditModal(false);
+            }
+          }}
         >
           <div
             style={{
@@ -2741,7 +2745,7 @@ export default function Home() {
               maxHeight: "90vh",
               overflowY: "auto",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
               <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
