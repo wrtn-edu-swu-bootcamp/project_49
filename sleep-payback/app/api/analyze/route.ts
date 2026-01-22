@@ -7,8 +7,10 @@ const openai = new OpenAI({
 });
 
 export async function POST(request: NextRequest) {
+  let body: any = null;
+  
   try {
-    const body = await request.json();
+    body = await request.json();
     const { targetSleep, actualSleep, sleepStart, sleepEnd, caffeineIntake, fatigueLevel, sleepDebt } = body;
 
     // 입력 검증
@@ -85,9 +87,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("AI 분석 오류:", error);
     
-    // 오류 발생 시 더미 데이터 반환
-    const body = await request.json();
-    return NextResponse.json(generateDummyReport(body));
+    // 오류 발생 시 더미 데이터 반환 (body가 파싱되었으면 사용)
+    if (body) {
+      return NextResponse.json(generateDummyReport(body));
+    }
+    
+    // body 파싱도 실패한 경우 기본 에러 반환
+    return NextResponse.json(
+      { error: "요청을 처리할 수 없습니다." },
+      { status: 500 }
+    );
   }
 }
 
