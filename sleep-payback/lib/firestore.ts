@@ -66,6 +66,7 @@ interface UserSettings {
  * 사용자 프로필 저장
  */
 export async function saveUserProfile(userId: string, profile: UserProfile): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
   const userRef = doc(db, "users", userId);
   await setDoc(userRef, { profile }, { merge: true });
 }
@@ -74,6 +75,7 @@ export async function saveUserProfile(userId: string, profile: UserProfile): Pro
  * 사용자 프로필 가져오기
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  if (!db) return null;
   const userRef = doc(db, "users", userId);
   const docSnap = await getDoc(userRef);
   
@@ -91,6 +93,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
  * 사용자 설정 저장
  */
 export async function saveUserSettings(userId: string, settings: UserSettings): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
   const userRef = doc(db, "users", userId);
   await setDoc(userRef, { settings }, { merge: true });
 }
@@ -99,6 +102,7 @@ export async function saveUserSettings(userId: string, settings: UserSettings): 
  * 사용자 설정 가져오기
  */
 export async function getUserSettings(userId: string): Promise<UserSettings | null> {
+  if (!db) return null;
   const userRef = doc(db, "users", userId);
   const docSnap = await getDoc(userRef);
   
@@ -116,6 +120,7 @@ export async function getUserSettings(userId: string): Promise<UserSettings | nu
  * 수면 기록 저장 (단일 날짜)
  */
 export async function saveSleepHistory(userId: string, history: SleepHistory): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
   const historyRef = doc(db, "users", userId, "sleepHistory", history.date);
   await setDoc(historyRef, history);
 }
@@ -124,6 +129,7 @@ export async function saveSleepHistory(userId: string, history: SleepHistory): P
  * 수면 기록 가져오기 (단일 날짜)
  */
 export async function getSleepHistory(userId: string, date: string): Promise<SleepHistory | null> {
+  if (!db) return null;
   const historyRef = doc(db, "users", userId, "sleepHistory", date);
   const docSnap = await getDoc(historyRef);
   
@@ -137,6 +143,7 @@ export async function getSleepHistory(userId: string, date: string): Promise<Sle
  * 모든 수면 기록 가져오기
  */
 export async function getAllSleepHistory(userId: string): Promise<SleepHistory[]> {
+  if (!db) return [];
   const historyRef = collection(db, "users", userId, "sleepHistory");
   const q = query(historyRef, orderBy("date", "desc"));
   const querySnapshot = await getDocs(q);
@@ -153,6 +160,7 @@ export async function getAllSleepHistory(userId: string): Promise<SleepHistory[]
  * 수면 기록 삭제 (단일 날짜)
  */
 export async function deleteSleepHistory(userId: string, date: string): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
   const historyRef = doc(db, "users", userId, "sleepHistory", date);
   await deleteDoc(historyRef);
 }
@@ -173,6 +181,8 @@ export async function saveAllSleepHistory(userId: string, histories: SleepHistor
  * 사용자의 모든 데이터 삭제
  */
 export async function deleteAllUserData(userId: string): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
+  
   // 1. 수면 기록 전체 삭제
   const historyRef = collection(db, "users", userId, "sleepHistory");
   const querySnapshot = await getDocs(historyRef);

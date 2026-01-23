@@ -1,5 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,8 +11,8 @@ const firebaseConfig = {
 };
 
 // Firebase 초기화 (에러 핸들링 추가)
-let app;
-let db;
+let app: FirebaseApp | null = null;
+let db: Firestore | null = null;
 
 try {
   // Firebase 앱이 이미 초기화되어 있으면 재사용
@@ -21,8 +21,8 @@ try {
 } catch (error) {
   console.warn("Firebase 초기화 실패:", error);
   // 초기화 실패 시 null로 설정 (로컬 모드로 작동)
-  app = null as any;
-  db = null as any;
+  app = null;
+  db = null;
 }
 
 export { db };
