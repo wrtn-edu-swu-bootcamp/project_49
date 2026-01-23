@@ -3,7 +3,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Moon, Sun, Sparkles, Activity, Coffee, Clock, Bed, Bell, Check, Edit2, Trash2, X, Calendar, ChevronLeft, ChevronRight, TrendingUp, Download, Upload, Target, Flame, Lightbulb, Palette, Award, Zap, FileText, Smile, Frown, Meh, User, LogOut, ChevronDown, UserX } from "lucide-react";
+import { Moon, Sun, Sparkles, Activity, Coffee, Clock, Bed, Bell, Check, Edit2, Trash2, X, Calendar, ChevronLeft, ChevronRight, TrendingUp, Download, Upload, Target, Flame, Lightbulb, Palette, Award, Zap, FileText, Smile, Frown, Meh, User, LogOut, ChevronDown, UserX, Cloud, CloudOff } from "lucide-react";
+import {
+  isFirebaseConfigured,
+  getAllSleepHistory,
+  saveSleepHistory,
+  deleteSleepHistory as deleteFirestoreSleepHistory,
+  saveUserProfile,
+  getUserProfile,
+  saveUserSettings,
+  getUserSettings,
+  deleteAllUserData,
+} from "../lib/firestore";
 
 interface SleepData {
   targetSleep: number;
@@ -78,6 +89,8 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [profileEmoji, setProfileEmoji] = useState("😊");
+  const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
+  const [cloudSyncLoading, setCloudSyncLoading] = useState(false);
   
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +132,61 @@ export default function Home() {
     }
   }, [theme, session]);
 
+  // Firestore에서 데이터 로드 (로그인 상태일 때)
+  useEffect(() => {
+    const loadFromFirestore = async () => {
+      if (!session?.user?.id || !isFirebaseConfigured()) {
+        setCloudSyncEnabled(false);
+        return;
+      }
+
+      setCloudSyncLoading(true);
+      try {
+        const userId = session.user.id;
+
+        // 수면 기록 로드
+        const cloudHistory = await getAllSleepHistory(userId);
+        if (cloudHistory.length > 0) {
+          setHistory(cloudHistory);
+          localStorage.setItem("sleep-history", JSON.stringify(cloudHistory));
+          
+          // 오늘 날짜의 투두 로드
+          const today = new Date().toISOString().split('T')[0];
+          const todayHistory = cloudHistory.find((h) => h.date === today);
+          if (todayHistory?.todos) {
+            setTodos(todayHistory.todos);
+          }
+        }
+
+        // 프로필 로드
+        const cloudProfile = await getUserProfile(userId);
+        if (cloudProfile) {
+          setProfileName(cloudProfile.name || "");
+          setProfileImage(cloudProfile.image || "");
+          setProfileEmoji(cloudProfile.emoji || "😊");
+          localStorage.setItem("user-profile", JSON.stringify(cloudProfile));
+        }
+
+        // 설정 로드
+        const cloudSettings = await getUserSettings(userId);
+        if (cloudSettings?.bedtimeAlarm) {
+          setBedtimeAlarmSet(cloudSettings.bedtimeAlarm.enabled);
+          setBedtimeAlarmTime(cloudSettings.bedtimeAlarm.time);
+          localStorage.setItem("bedtime-alarm", JSON.stringify(cloudSettings.bedtimeAlarm));
+        }
+
+        setCloudSyncEnabled(true);
+      } catch (error) {
+        console.error("Firestore 데이터 로드 실패:", error);
+        setCloudSyncEnabled(false);
+      } finally {
+        setCloudSyncLoading(false);
+      }
+    };
+
+    loadFromFirestore();
+  }, [session]);
+
   const cycleTheme = () => {
     if (theme === "basic") setTheme("day");
     else if (theme === "day") setTheme("night");
@@ -126,17 +194,36 @@ export default function Home() {
     else setTheme("basic");
   };
 
-  const handleProfileSave = () => {
+  const handleProfileSave = async () => {
     const profile = {
       name: profileName,
       image: profileImage,
       emoji: profileEmoji,
     };
     localStorage.setItem("user-profile", JSON.stringify(profile));
+    
+    // Firestore에도 저장 (로그인 상태일 때)
+    if (session?.user?.id && cloudSyncEnabled) {
+      try {
+        await saveUserProfile(session.user.id, profile);
+      } catch (error) {
+        console.error("프로필 클라우드 저장 실패:", error);
+      }
+    }
+    
     setShowProfileEditModal(false);
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
+    // Firestore 데이터 삭제 (로그인 상태일 때)
+    if (session?.user?.id && cloudSyncEnabled) {
+      try {
+        await deleteAllUserData(session.user.id);
+      } catch (error) {
+        console.error("Firestore 데이터 삭제 실패:", error);
+      }
+    }
+    
     // 모든 localStorage 데이터 삭제
     localStorage.removeItem("user-profile");
     localStorage.removeItem("sleep-history");
@@ -492,6 +579,15 @@ export default function Home() {
         const updatedHistory = [...history.filter(h => h.date !== selectedDate), newHistory];
         setHistory(updatedHistory);
         localStorage.setItem("sleep-history", JSON.stringify(updatedHistory));
+        
+        // Firestore에도 저장 (로그인 상태일 때)
+        if (session?.user?.id && cloudSyncEnabled) {
+          try {
+            await saveSleepHistory(session.user.id, newHistory);
+          } catch (error) {
+            console.error("수면 기록 클라우드 저장 실패:", error);
+          }
+        }
       }
     } catch (e) {
       console.error(e);
@@ -541,7 +637,7 @@ export default function Home() {
 
   const toggleBedtimeAlarm = () => {
     if ("Notification" in window) {
-      Notification.requestPermission().then((permission) => {
+      Notification.requestPermission().then(async (permission) => {
         if (permission === "granted") {
           const newState = !bedtimeAlarmSet;
           setBedtimeAlarmSet(newState);
@@ -551,6 +647,15 @@ export default function Home() {
             time: bedtimeAlarmTime,
           };
           localStorage.setItem("bedtime-alarm", JSON.stringify(alarmData));
+          
+          // Firestore에도 저장 (로그인 상태일 때)
+          if (session?.user?.id && cloudSyncEnabled) {
+            try {
+              await saveUserSettings(session.user.id, { bedtimeAlarm: alarmData });
+            } catch (error) {
+              console.error("알람 설정 클라우드 저장 실패:", error);
+            }
+          }
           
           if (newState) {
             alert(`매일 ${bedtimeAlarmTime}에 취침 알림을 보내드릴게요.`);
@@ -666,10 +771,19 @@ export default function Home() {
     setTodos(todos.filter(t => t.id !== id));
   };
 
-  const deleteHistoryDate = (dateStr: string) => {
+  const deleteHistoryDate = async (dateStr: string) => {
     const updatedHistory = history.filter(h => h.date !== dateStr);
     setHistory(updatedHistory);
     localStorage.setItem("sleep-history", JSON.stringify(updatedHistory));
+    
+    // Firestore에서도 삭제 (로그인 상태일 때)
+    if (session?.user?.id && cloudSyncEnabled) {
+      try {
+        await deleteFirestoreSleepHistory(session.user.id, dateStr);
+      } catch (error) {
+        console.error("수면 기록 클라우드 삭제 실패:", error);
+      }
+    }
   };
 
   // Calendar functions
@@ -1082,6 +1196,25 @@ export default function Home() {
                   }}>
                     {profileName || session.user?.name?.split(' ')[0] || 'User'}
                   </span>
+                  {/* 클라우드 동기화 상태 표시 */}
+                  {cloudSyncLoading ? (
+                    <div style={{
+                      width: "14px",
+                      height: "14px",
+                      border: "2px solid var(--border)",
+                      borderTopColor: "var(--accent)",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                    }} />
+                  ) : cloudSyncEnabled ? (
+                    <span title="클라우드 동기화 활성화">
+                      <Cloud size={14} color="var(--success)" />
+                    </span>
+                  ) : (
+                    <span title="로컬 저장소 사용 중">
+                      <CloudOff size={14} color="var(--text-secondary)" />
+                    </span>
+                  )}
                   <ChevronDown size={14} color="var(--text-secondary)" />
                 </button>
 
